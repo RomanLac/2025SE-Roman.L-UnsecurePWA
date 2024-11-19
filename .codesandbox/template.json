@@ -1,0 +1,7 @@
+{
+    "title": "The Unsecure PWA",
+    "description": "A Unsecure PWA for students to test and patch",
+    "iconUrl": "https://raw.githubusercontent.com/codesandbox/sandbox-templates/main/python-flask-server/.codesandbox/icon.png",
+    "tags": ["python", "pip", "flask", "http-server", "backend"],
+    "published": true
+}
