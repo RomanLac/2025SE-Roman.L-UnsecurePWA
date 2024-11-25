@@ -2,7 +2,6 @@ import sqlite3 as sql
 import time
 import random
 
-
 def insertUser(username, password, DoB):
     con = sql.connect("database_files/database.db")
     cur = con.cursor()
@@ -24,7 +23,7 @@ def retrieveUsers(username, password):
     else:
         cur.execute(f"SELECT * FROM users WHERE password = '{password}'")
         # Plain text log of visitor count as requested by Unsecure PWA management
-        with open("visitor_log.txt", "r") as file:
+        with open("visitor_log.txt", "r") as file:  
             number = int(file.read().strip())
             number += 1
         with open("visitor_log.txt", "w") as file:
@@ -42,7 +41,7 @@ def retrieveUsers(username, password):
 def insertFeedback(feedback):
     con = sql.connect("database_files/database.db")
     cur = con.cursor()
-    cur.execute(f"INSERT INTO feedback (feedback) VALUES ('{feedback}')")
+    cur.execute(f"INSERT INTO feedback (feedback) VALUES ('{feedback}')") ## aaaa
     con.commit()
     con.close()
 
@@ -52,7 +51,7 @@ def listFeedback():
     cur = con.cursor()
     data = cur.execute("SELECT * FROM feedback").fetchall()
     con.close()
-    f = open("templates/partials/success_feedback.html", "w")
+    f = open("templates/partials/success_feedback.html", "w") ## aaaa
     for row in data:
         f.write("<p>\n")
         f.write(f"{row[1]}\n")
