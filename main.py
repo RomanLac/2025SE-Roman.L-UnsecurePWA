@@ -1,19 +1,26 @@
+from flask import Flask, render_template, request, redirect, url_for, session
 from flask import Flask
 from flask import render_template
 from flask import request
 from flask import redirect
 
-import re
-import html
-import bcrypt
-
+# files
 import user_management as dbHandler
+import sanitize_and_validate as vs
+# import factor_authentication.py as vs
 
 # Code snippet for logging a message
 # app.logger.critical("message")
 
-app = Flask(__name__)
+from flask import Flask, render_template, request, redirect, url_for, session
+import pyotp
+import pyqrcode
+import os
+import base64
+from io import BytesIO
 
+app = Flask(__name__)
+app.secret_key = 'my_secret_key'
 
 @app.route("/success.html", methods=["POST", "GET", "PUT", "PATCH", "DELETE"])
 def addFeedback():
@@ -25,7 +32,6 @@ def addFeedback():
 
         # sanitization
         feedback = make_web_safe(feedback)
-
 
         dbHandler.insertFeedback(feedback)
         dbHandler.listFeedback()
@@ -46,7 +52,7 @@ def signup():
         
         # password check
         if not check_password(password):
-            return "no"
+            return "-"
 
         DoB = request.form["dob"]
         dbHandler.insertUser(username, password, DoB)
@@ -65,7 +71,19 @@ def home():
         username = request.form["username"]
         password = request.form["password"]
         isLoggedIn = dbHandler.retrieveUsers(username, password)
+
         if isLoggedIn:
+
+            user_secret = pyotp.random_base32() #generate the one-time passcode
+            #return redirect(url_for('enable_2fa')) #redirect to 2FA page
+
+            totp = pyotp.TOTP(user_secret)
+            otp_uri = totp.provisioning_uri(name=username,issuer_name="YourAppName")
+            qr_code = pyqrcode.create(otp_uri)
+            stream = BytesIO()
+            qr_code.png(stream, scale=5)
+            qr_code_b64 = base64.b64encode(stream.getvalue()).decode('utf-8')
+            
             dbHandler.listFeedback()
             return render_template("/success.html", value=username, state=isLoggedIn)
         else:
@@ -73,7 +91,8 @@ def home():
     else:
         return render_template("/index.html")
 
-# 9-12, 3 numbers, 4 alpha
+
+# 9-12, 3 numbers, 4 letters
 def check_password(password):
     if not isinstance(password, str):
         return False
@@ -93,19 +112,10 @@ def check_password(password):
 
     return True
 
-# use this in exam but library is faster
-def replace_characters(input_string: str) -> str:
-    to_replace = ["<", ">", ";"]
-    replacements = ["%3C", "%3E", "%3B"]
-    char_list = list(input_string)
-    for i in range(len(char_list)):
-        if char_list[i] in to_replace:
-            index = to_replace.index(char_list[i])
-            char_list[i] = replacements[index]
-
 # the library thing
 def make_web_safe(string: str) -> str:
     return html.escape(string)
+
 
 if __name__ == "__main__":
     app.config["TEMPLATES_AUTO_RELOAD"] = True
